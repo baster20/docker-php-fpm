@@ -1,5 +1,5 @@
 # Auto-generated via Ansible: edit build/ansible/DOCKERFILES/Dockerfile-prod.j2 instead.
-FROM baster20/php-fpm:7.3-mods
+FROM devilbox/php-fpm:7.3-mods
 MAINTAINER "cytopia" <cytopia@everythingcli.org>
 
 
