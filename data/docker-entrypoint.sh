@@ -162,7 +162,7 @@ copy_ini_files "${DVL_PHP_CUST_INI_DIR}" "${DVL_PHP_INI_DIR}" "${DEBUG_LEVEL}"
 if [ "${PHP_VERSION}" = "5.2" ]; then
 	copy_fpm_5_2_conf_file "${DVL_PHP_CUST_FPM_DIR}/php-fpm.xml" "${DEBUG_LEVEL}"
 else
-	copy_fpm_files "${DVL_PHP_CUST_FPM_DIR}" "${DVL_PHP_FPM_DIR}" "${DEBUG_LEVEL}"
+copy_fpm_files "${DVL_PHP_CUST_FPM_DIR}" "${DVL_PHP_FPM_DIR}" "${DEBUG_LEVEL}"
 fi
 
 
@@ -179,13 +179,40 @@ disable_modules "DISABLE_MODULES" "${DEBUG_LEVEL}"
 
 
 ###
+### mysqldump-secure
+###
+fix_mds_permissions "${MY_USER}" "${MY_GROUP}" "${DEBUG_LEVEL}"
+set_mds_settings "MYSQL_BACKUP_USER" "MYSQL_BACKUP_PASS" "MYSQL_BACKUP_HOST" "${DEBUG_LEVEL}"
+
+
+###
+### Fix mountpoint permissions
+###
+if [ ! -d "/shared/backups" ]; then
+	run "mkdir -p /shared/backups" "${DEBUG_LEVEL}"
+fi
+if [ ! -d "/shared/httpd" ]; then
+	run "mkdir -p /shared/httpd" "${DEBUG_LEVEL}"
+fi
+run "chown ${MY_USER}:${MY_GROUP} /shared/backups" "${DEBUG_LEVEL}"
+run "chown ${MY_USER}:${MY_GROUP} /shared/httpd" "${DEBUG_LEVEL}"
+run "chmod 0755 /shared/backups" "${DEBUG_LEVEL}"
+run "chmod 0755 /shared/httpd" "${DEBUG_LEVEL}"
+
+
+###
+### Update ca-certificates
+###
+update_ca_certificates "/ca" "${DEBUG_LEVEL}"
+
+
+###
 ### Run custom user supplied scripts
 ###
 execute_custom_scripts "/startup.1.d" "${DEBUG_LEVEL}"
 execute_custom_scripts "/startup.2.d" "${DEBUG_LEVEL}"
 
 
-###
 ###
 ### Startup
 ###
