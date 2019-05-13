@@ -1,5 +1,5 @@
 # Auto-generated via Ansible: edit build/ansible/DOCKERFILES/Dockerfile-base.j2 instead.
-FROM baster20/php-fpm-7.4
+FROM baster20/php-fpm-7.4-prod
 MAINTAINER "cytopia" <cytopia@everythingcli.org>
 
 
