@@ -1,5 +1,5 @@
-# Auto-generated via Ansible: edit build/ansible/DOCKERFILES/Dockerfile-prod.j2 instead.
-FROM devilbox/php-fpm:7.3-mods
+# Auto-generated via Ansible: edit build/ansible/DOCKERFILES/Dockerfile-base.j2 instead.
+FROM devilbox/php-fpm-7.4
 MAINTAINER "cytopia" <cytopia@everythingcli.org>
 
 
@@ -7,38 +7,60 @@ MAINTAINER "cytopia" <cytopia@everythingcli.org>
 ### Labels
 ###
 LABEL \
-	name="cytopia's PHP-FPM 7.3 Image" \
+	name="cytopia's PHP-FPM 7.4 Image" \
 	image="devilbox/php-fpm" \
-	tag="7.3-prod" \
+	tag="7.4-base" \
 	vendor="devilbox" \
 	license="MIT"
 
 
 ###
-### Install
+### Envs
+###
+ENV MY_USER="devilbox" \
+	MY_GROUP="devilbox" \
+	MY_UID="1000" \
+	MY_GID="1000" \
+	PHP_VERSION="7.4"
+
+
+###
+### User/Group
+###
+RUN set -x \
+	&& groupadd -g ${MY_GID} -r ${MY_GROUP} \
+	&& useradd -u ${MY_UID} -m -s /bin/bash -g ${MY_GROUP} ${MY_USER}
+
+
+###
+### Upgrade (install ps)
 ###
 RUN set -x \
 	&& DEBIAN_FRONTEND=noninteractive apt-get update -qq \
-	&& DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends --no-install-suggests apt-utils \
-	&& DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends --no-install-suggests \
-		locales-all \
-		postfix \
-		postfix-pcre \
-		cron \
-		rsyslog \
-		socat \
-		supervisor \
-	&& DEBIAN_FRONTEND=noninteractive apt-get purge -qq -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false apt-utils \
-	&& rm -rf /var/lib/apt/lists/* \
-	\
-	&& rm -rf /etc/supervisor* \
-	&& mkdir -p /etc/supervisor/conf.d \
-	&& mkdir -p /var/log/supervisor \
-	\
-	&& (find /usr/local/bin -type f -print0 | xargs -n1 -0 strip --strip-all -p 2>/dev/null || true) \
-	&& (find /usr/local/lib -type f -print0 | xargs -n1 -0 strip --strip-all -p 2>/dev/null || true) \
-	&& (find /usr/local/sbin -type f -print0 | xargs -n1 -0 strip --strip-all -p 2>/dev/null || true)
+	&& DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --no-install-recommends --no-install-suggests procps \
+	&& rm -rf /var/lib/apt/lists/*
 
+
+###
+### Configure
+###
+RUN set -x \
+	&& rm -rf /usr/local/etc/php-fpm.d \
+	&& mkdir -p /usr/local/etc/php-fpm.d \
+	&& mkdir -p /var/lib/php/session \
+	&& mkdir -p /var/lib/php/wsdlcache \
+	&& chown -R devilbox:devilbox /var/lib/php/session \
+	&& chown -R devilbox:devilbox /var/lib/php/wsdlcache
+
+
+###
+### Copy files
+###
+COPY ./data/php-ini.d/php-7.4.ini /usr/local/etc/php/conf.d/xxx-devilbox-default-php.ini
+COPY ./data/php-fpm.conf/php-fpm-7.4.conf /usr/local/etc/php-fpm.conf
+
+COPY ./data/docker-entrypoint.sh /docker-entrypoint.sh
+COPY ./data/docker-entrypoint.d /docker-entrypoint.d
 
 
 ###
@@ -46,7 +68,7 @@ RUN set -x \
 ###
 RUN set -x \
 	&& echo "date.timezone=UTC" > /usr/local/etc/php/php.ini \
-	&& php -v | grep -oE 'PHP\s[.0-9]+' | grep -oE '[.0-9]+' | grep '^7.3' \
+	&& php -v | grep -oE 'PHP\s[.0-9]+' | grep -oE '[.0-9]+' | grep '^7.4' \
 	&& /usr/local/sbin/php-fpm --test \
 	\
 	&& PHP_ERROR="$( php -v 2>&1 1>/dev/null )" \
@@ -59,23 +81,6 @@ RUN set -x \
 	&& PHP_FPM_ERROR="$( php-fpm -i 2>&1 1>/dev/null )" \
 	&& if [ -n "${PHP_FPM_ERROR}" ]; then echo "${PHP_FPM_ERROR}"; false; fi \
 	&& rm -f /usr/local/etc/php/php.ini
-
-
-###
-### Copy files
-###
-COPY ./data/docker-entrypoint.sh /docker-entrypoint.sh
-COPY ./data/docker-entrypoint.d/*.sh /docker-entrypoint.d/
-COPY ./data/postfix.sh /usr/local/sbin/postfix.sh
-COPY ./data/supervisord.conf /etc/supervisor/supervisord.conf
-
-
-###
-### Volumes
-###
-VOLUME /var/log/php
-VOLUME /var/mail
-
 
 
 ###

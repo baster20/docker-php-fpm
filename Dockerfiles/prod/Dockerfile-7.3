@@ -1,5 +1,5 @@
 # Auto-generated via Ansible: edit build/ansible/DOCKERFILES/Dockerfile-prod.j2 instead.
-FROM baster20/php-fpm:7.3-mods
+FROM devilbox/php-fpm:7.3-mods
 MAINTAINER "cytopia" <cytopia@everythingcli.org>
 
 
@@ -7,9 +7,9 @@ MAINTAINER "cytopia" <cytopia@everythingcli.org>
 ### Labels
 ###
 LABEL \
-	name="cytopia's PHP-FPM 7.3 Image" \
-	image="devilbox/php-fpm" \
-	tag="7.3-prod" \
+	name="CargoCV cytopia's PHP-FPM 7.3 Image" \
+	image="baster20/php-fpm-7.3-work-0.80" \
+	tag="gitlab-runner" \
 	vendor="devilbox" \
 	license="MIT"
 
@@ -37,8 +37,7 @@ RUN set -x \
 	\
 	&& (find /usr/local/bin -type f -print0 | xargs -n1 -0 strip --strip-all -p 2>/dev/null || true) \
 	&& (find /usr/local/lib -type f -print0 | xargs -n1 -0 strip --strip-all -p 2>/dev/null || true) \
-	&& (find /usr/local/sbin -type f -print0 | xargs -n1 -0 strip --strip-all -p 2>/dev/null || true)
-
+	&& (find /usr/local/sbin -type f -print0 | xargs -n1 -0 strip --strip-all -p 2>/dev/null || true) 
 
 
 ###
